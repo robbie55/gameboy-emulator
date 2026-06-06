@@ -1,46 +1,36 @@
 name: CI
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
-jobs:
+# Cancel superseded runs on the same ref to save CI minutes
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
-  build-matrix:
-    name: Build Matrix
+jobs:
+  build:
+    name: Build & Test (${{ matrix.os }} / ${{ matrix.preset }})
     strategy:
-      fail-fast: false # makes for easier debugging across builds
+      fail-fast: false # easier debugging across builds
       matrix:
-        os: [ macos-14 ] # potentially add additional os'
+        os: [ubuntu-24.04, macos-14]
         preset: [debug, release]
     runs-on: ${{ matrix.os }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Compute Cache Key
-        id: llvm-version
-        run: echo "cache_key=$(brew info --json=v2 llvm | jq -r '.formulae[0].versions.stable')" >> $GITHUB_OUTPUT
+      - name: Install SDL2 (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
 
-      - name: Cache LLVM
-        id: cache-llvm
-        uses: actions/cache@v5
-        with:
-          path: |
-            /opt/homebrew/Cellar/llvm/${{ steps.llvm-version.outputs.cache_key }}/
-            /opt/homebrew/opt/llvm
-
-          key: ${{ runner.os }}-llvm-${{ steps.llvm-version.outputs.cache_key }}
-
-
-      - name: Install LLVM Deps
-        run: brew install $(brew deps llvm) --formula
-
-      - name: Install LLVM
-        if: ${{ steps.cache-llvm.outputs.cache-hit != 'true' }}
-        run: brew install llvm
+      - name: Install SDL2 (macOS)
+        if: runner.os == 'macOS'
+        run: brew install sdl2
 
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
@@ -48,17 +38,17 @@ jobs:
       - name: Build
         run: cmake --build build/${{ matrix.preset }}
 
-      - name: Run Tests
-        run: ctest --preset ${{ matrix.preset }}
-
+      - name: Test
+        # --no-tests=ignore keeps CI green until you add tests.
+        # Switch to --no-tests=error once you have a test suite.
+        run: ctest --preset ${{ matrix.preset }} --no-tests=ignore
 
   lint:
-    name: Linter (Ubuntu v.24.04)
+    name: Linter (clang-format)
     runs-on: ubuntu-24.04
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Clang Format
-        run: git ls-files -z '*.cpp' '*.h' '*.hpp' | xargs -0 clang-format --dry-run --Werror
+        # Requires a .clang-format file at the repo root to define your style.
+        run: git ls-files -z '*.cpp' '*.hpp' '*.h' | xargs -0 clang-format --dry-run --Werror
