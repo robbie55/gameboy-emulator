@@ -1,0 +1,72 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 23, "patch": 0 },
+
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "description": "Shared base preset, inherited by the real ones. `hidden: true` excludes this preset from `cmake --list-presets` and rejects `cmake --preset base`, but still allows inheritance via `inherits` — exactly what you want for an incomplete template (no `CMAKE_BUILD_TYPE` here). RESEARCH: (a) what schema `version` do you need — check the cmake-presets(7) version-to-feature table — and what breaks if you pick too low? (b) when does inheritance hurt readability vs help it? (c) why does this schema have BOTH `environment` and `cacheVariables` — what belongs in each?",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+
+      "generator": "Ninja",
+
+      "cacheVariables": {}
+    },
+
+    {
+      "name": "debug",
+      "inherits": "base",
+      "displayName": "Debug",
+      "description": "Default Debug build: -O0 -g, NDEBUG undefined (so assert() fires), no -DNDEBUG. All inherited from CMAKE_BUILD_TYPE=Debug toolchain defaults — see cmake-variables(7) for CMAKE_CXX_FLAGS_DEBUG.",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+
+    {
+      "name": "release",
+      "inherits": "base",
+      "displayName": "Release",
+      "description": "Default Release build: -O3 -DNDEBUG (so assert() is compiled out), no debug info. All inherited from CMAKE_BUILD_TYPE=Release toolchain defaults — see cmake-variables(7) for CMAKE_CXX_FLAGS_RELEASE.",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "description": "Builds in debug config, see debug config above"
+    }
+  ],
+
+  "testPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "description": "Runs ctest against the debug build. Tests live in tests/ and are registered via doctest_discover_tests; doctest is pulled in via FetchContent. See CLAUDE.md for the framework rationale (compile speed for tight inner-loop iteration).",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "description": "Runs ctest against the release build. Tests live in tests/ and are registered via doctest_discover_tests; doctest is pulled in via FetchContent. See CLAUDE.md for the framework rationale (compile speed for tight inner-loop iteration).",
+      "output": { "outputOnFailure": true }
+    }
+  ],
+
+  "vendor": {
+    "_about_this_field": "JSON doesn't support comments, so this object exists only as a scratchpad for research prompts. CMake should ignore unknown top-level keys; if it warns, move these notes into per-preset `description` fields and delete this block.",
+
+    "_ccache": "TODO: wire ccache in. Two common places: (1) here in cacheVariables on `base` — set CMAKE_C_COMPILER_LAUNCHER and CMAKE_CXX_COMPILER_LAUNCHER to \"ccache\". (2) inside CMakeLists.txt with find_program(CCACHE_PROGRAM ccache) + set(CMAKE_CXX_COMPILER_LAUNCHER ...). Read both approaches. Question to answer: what happens when both are set, and which scope do you actually want for a project that other people might clone?",
+
+    "_clang_tidy": "TODO: decide whether clang-tidy runs automatically on every build (CMAKE_CXX_CLANG_TIDY) or only on demand (separate CI step / pre-commit). The first is more thorough but slower and noisier; the second is easier to ignore. Pick one consciously.",
+
+    "_sanitizers": "TODO: add a 'asan' or 'debug-asan' configurePreset that inherits debug and turns on -fsanitize=address,undefined. Research: which sanitizers are mutually exclusive? Which need extra runtime flags (e.g. ASAN_OPTIONS)? Which ones does Apple's Clang on macOS not ship?",
+
+    "_user_presets": "TODO: read about CMakeUserPresets.json. When should something live there instead of in this file? (Hint: think about what other people on your machine vs other people on other machines should see.)"
+  }
+}
