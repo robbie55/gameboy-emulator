@@ -11,4 +11,4 @@ std::byte RomOnlyCartridge::read(uint16_t addr) const {
   return static_cast<std::byte>(cartridge::kOpenBus);
 }
 
-void RomOnlyCartridge::write(uint16_t, std::byte) { return; }
+void RomOnlyCartridge::write(uint16_t, std::byte) {}
