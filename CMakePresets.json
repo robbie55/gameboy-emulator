@@ -11,7 +11,9 @@
 
       "generator": "Ninja",
 
-      "cacheVariables": {}
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
     },
 
     {
