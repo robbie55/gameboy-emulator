@@ -22,7 +22,7 @@ class Cartridge {
   using CartridgeStrategy = std::variant<RomOnlyCartridge>;
 
  public:
-  Cartridge(CartridgeStrategy cartridge) : cartridge_(std::move(cartridge)) {};
+  Cartridge(CartridgeStrategy cartridge) : cartridge_(std::move(cartridge)) {}
   Cartridge(Cartridge const& other) = delete;
   Cartridge(Cartridge&& other) = default;
 
