@@ -13,7 +13,7 @@ list(APPEND CMAKE_MODULE_PATH ${doctest_SOURCE_DIR}/scripts/cmake)
 include(doctest)
 
 add_executable(tests 
-  src/test_cartridge.cpp
+  src/test_cartridge.cpp src/test_interrupt_controller.cpp
 )
 
 target_link_libraries(tests PRIVATE gb_core)

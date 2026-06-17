@@ -160,6 +160,11 @@ flowchart BT
 
     %% process entry
     MAIN --> GB
+
+    %% layer separators: transparent fill, just a labelled divider line — no background bands
+    style TOP fill:none,stroke:#333,stroke-width:1px
+    style MID fill:none,stroke:#333,stroke-width:1px
+    style BOT fill:none,stroke:#333,stroke-width:1px
 ```
 
 ### View 2 — Control / data flow (the per-frame run loop)
