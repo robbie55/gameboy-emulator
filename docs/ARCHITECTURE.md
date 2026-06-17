@@ -104,6 +104,12 @@ toward the stable apex; the apex depends on nothing. (Control flow runs the oppo
 View 2.) The single lateral edge, `cpu → mmu`, is the sanctioned data-bus spine.
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {
+    'fontSize': '14px',
+    'clusterBkg': '#e9eef5', 'clusterBorder': '#64748b',
+    'primaryColor': '#ffffff', 'primaryBorderColor': '#334155',
+    'primaryTextColor': '#0f172a', 'lineColor': '#1e293b'
+}}}%%
 flowchart BT
     subgraph TOP["TOP — stable apex (depends on nothing)"]
         CONST["constants / spec<br/>(frozen data)"]
@@ -160,6 +166,12 @@ flowchart BT
 
     %% process entry
     MAIN --> GB
+
+    %% --- styling: tinted layers + white nodes + bold edges so arrows read clearly ---
+    style TOP fill:#dbeafe,stroke:#2563eb,stroke-width:2px
+    style MID fill:#dcfce7,stroke:#16a34a,stroke-width:2px
+    style BOT fill:#fef3c7,stroke:#d97706,stroke-width:2px
+    linkStyle default stroke:#1e293b,stroke-width:2px
 ```
 
 ### View 2 — Control / data flow (the per-frame run loop)
