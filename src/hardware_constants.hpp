@@ -32,7 +32,6 @@ namespace game_boy_memory {
 
   inline constexpr uint16_t kHRAMStart{0xFF80};
   inline constexpr uint16_t kHRAMEnd{0xFFFE};
-
 }  // namespace game_boy_memory
 
 namespace io_registers {
@@ -57,7 +56,6 @@ namespace io_registers {
   inline constexpr uint16_t kWY{0xFF4A};       // Window pos Y
   inline constexpr uint16_t kWX{0xFF4B};       // Window pos X
   inline constexpr uint16_t kIE{0xFFFF};       // Interrupt Enable
-
 }  // namespace io_registers
 
 namespace interrupts {
@@ -76,3 +74,8 @@ namespace interrupts {
   inline constexpr uint8_t kJoypadBit{4};
   inline constexpr uint16_t kJoypadVector{0x0060};
 }  // namespace interrupts
+
+namespace lcd {
+  inline constexpr uint8_t kLCDWidth{160};
+  inline constexpr uint8_t kLCDHeight{144};
+}  // namespace lcd
