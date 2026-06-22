@@ -5,14 +5,17 @@
 namespace ppu {
   inline constexpr uint16_t kDotsPerScanline{456};
 
+  inline constexpr uint8_t kModeZeroDots{151};
   inline constexpr uint8_t kModeTwoDots{80};
+  inline constexpr uint8_t kModeThreeDots{225};
 
-  inline constexpr uint16_t kModeThreeDotsMax{289};
-  inline constexpr uint16_t kModeThreeDotsMin{172};
+  static_assert(kModeZeroDots + kModeTwoDots + kModeThreeDots == kDotsPerScanline);
 
-  inline constexpr uint16_t kLinesPerFrame{154};
+  inline constexpr uint8_t kModeOneScanlineEntry{144};
 
-  inline constexpr uint32_t kDotsPerFrame{kLinesPerFrame * kDotsPerScanline};
+  inline constexpr uint16_t kScanlinesPerFrame{154};
+
+  inline constexpr uint32_t kDotsPerFrame{kScanlinesPerFrame * kDotsPerScanline};
 }  // namespace ppu
 
 namespace ppu::lcdc_bits {

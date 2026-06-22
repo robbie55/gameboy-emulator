@@ -3,6 +3,44 @@
 #include <cassert>
 
 #include "hardware_constants.hpp"
+#include "ppu_constants.hpp"
+
+namespace {
+  /*
+   *
+   * DeriveTargetMode
+   * accepts the ly and dot_counter member, returns a mode based on conditions set in rendering
+   * see: https://gbdev.io/pandocs/Rendering.html
+   *
+   */
+  PPUMode DeriveTargetMode(uint8_t ly, uint16_t dot_counter) {
+    if (ly >= ppu::kModeOneScanlineEntry) {
+      return PPUMode::kVBlank;
+    }
+    if (dot_counter < ppu::kModeTwoDots) {
+      return PPUMode::kOAM;
+    }
+    if (dot_counter < (ppu::kModeTwoDots + ppu::kModeThreeDots)) {
+      return PPUMode::kDraw;
+    }
+
+    return PPUMode::kHBlank;
+  }
+
+  /*
+   *
+   * CheckAndRaiseStatInterrupt
+   * Accepts stat and interrupt handler member, and the corresponding bit the ppu wishes to query
+   * for an inerrupt if that bit is set in the stat member, raise a stat interrupt
+   *
+   */
+  void CheckAndRaiseStatInterrupt(uint8_t stat, uint8_t bit,
+                                  InterruptController& interrupt_handler) {
+    if ((stat & (1 << bit)) != 0) {
+      interrupt_handler.requestInterrupt(interrupts::kLcdStatBit);
+    }
+  }
+}  // namespace
 
 // we protect the bad addr invariant via asserts, so NOLINT serves for these accessors
 uint8_t PPU::readOAM(const uint16_t addr) const {
@@ -33,10 +71,62 @@ void PPU::writeVRAM(const uint16_t addr, const uint8_t val) {
   vram_[addr] = val;  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index
 }
 
-void PPU::setStatAndMode(uint8_t stat, PPUMode mode) {
-  assert(static_cast<PPUMode>(stat & 0x03) == mode &&
-         "PPU::setStatAndMode -> stat's bottom two bits don't align with mode");
+void PPU::advanceScanline() {
+  dot_counter_ = 0;
+  ly_++;
 
-  stat_ = stat;
-  mode_ = mode;
+  if (ly_ == ppu::kScanlinesPerFrame) {
+    ly_ = 0;
+  }
+
+  if (ly_ == ly_compare_) {
+    CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kLYCIntSelect, interrupt_handler_);
+  }
+}
+
+/*
+ *
+ * advance
+ * accepts t cycles from the cpu, and advances the dot counter
+ * afance handles managing the dot counter and cycle, and orchestrates
+ * corresponding functionality that comes with the advancing dot cycle
+ *
+ * including:
+ *    Mode transitions + side effects
+ *    Scanline transitions + side effects
+ *
+ */
+void PPU::advance(uint8_t const t_cycles) {
+  for (uint8_t i{}; i < t_cycles; ++i) {
+    ++dot_counter_;
+    if (dot_counter_ == ppu::kDotsPerScanline) {
+      advanceScanline();
+    }
+
+    PPUMode target{DeriveTargetMode(ly_, dot_counter_)};
+    if (target == mode_) {
+      continue;
+    }
+
+    mode_ = target;
+    switch (mode_) {
+      case PPUMode::kOAM:
+        CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeTwoSelect,
+                                   interrupt_handler_);
+        break;
+      case PPUMode::kDraw:
+        renderScanline();
+        break;
+      case PPUMode::kHBlank:
+        CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeZeroSelect,
+                                   interrupt_handler_);
+        break;
+      case PPUMode::kVBlank:
+        frame_complete_ = true;
+        interrupt_handler_.requestInterrupt(interrupts::kVblankBit);
+        CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeOneSelect,
+                                   interrupt_handler_);
+        break;
+    }
+  }
 }

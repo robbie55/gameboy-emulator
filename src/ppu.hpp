@@ -10,8 +10,24 @@
 enum class PPUMode : uint8_t { kHBlank = 0, kVBlank = 1, kOAM = 2, kDraw = 3 };
 
 class PPU {
+ private:
+  void renderScanline();
+  void advanceScanline();
+
  public:
-  PPU() : mode_{PPUMode::kVBlank}, stat_{0x85}, lcdc_{0x91}, background_palette_{0xFC} {}
+  explicit PPU(InterruptController& interrupt_handler)
+      : mode_{PPUMode::kOAM},
+        lcdc_{0x91},
+        background_palette_{0xFC},
+        interrupt_handler_{interrupt_handler} {}
+
+  // no moving or copying, ref& member variable
+  PPU() = delete;
+  PPU(PPU const& other) = delete;
+  PPU(PPU&& other) = delete;
+  PPU& operator=(PPU const& other) = delete;
+  PPU& operator=(PPU&& other) = delete;
+  ~PPU() = default;
 
   [[nodiscard]] uint8_t readVRAM(uint16_t addr) const;
   void writeVRAM(uint16_t addr, uint8_t val);
@@ -19,9 +35,12 @@ class PPU {
   [[nodiscard]] uint8_t readOAM(uint16_t addr) const;
   void writeOAM(uint16_t addr, uint8_t val);
 
- private:
-  void setStatAndMode(uint8_t stat, PPUMode mode);
+  [[nodiscard]] bool isFrameComplete() const { return frame_complete_; }
+  void clearFrameComplete() { frame_complete_ = false; }
 
+  void advance(uint8_t t_cycles);
+
+ private:
   // inclusive, +1 to prevent off by one errors
   std::array<uint8_t,
              static_cast<std::size_t>(game_boy_memory::kVRAMEnd - game_boy_memory::kVRAMStart + 1)>
@@ -34,10 +53,12 @@ class PPU {
 
   uint16_t dot_counter_{};
 
-  // these two are directly related, protect with an accessor + assert to ensure the invariant
-  // between bits 0-1 and mode are protected
+  // store a mode to derive the bottom two bits of a stat register, stat_int_select_ only stores
+  // bits 3-6, exclude mode, coincidence and 7th bit
   PPUMode mode_{};
-  uint8_t stat_{};
+  uint8_t stat_int_select_{};
+
+  bool frame_complete_{};
 
   uint8_t ly_{};
   uint8_t ly_compare_{};
@@ -50,5 +71,7 @@ class PPU {
   uint8_t obj_sprite_palette_zero_{};
   uint8_t obj_sprite_palette_one_{};
 
-  InterruptController interrupt_handle_;
+  // non owning relationship, OK to use a ref here
+  InterruptController&
+      interrupt_handler_;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 };
