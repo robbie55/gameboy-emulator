@@ -27,6 +27,8 @@ namespace {
     return PPUMode::kHBlank;
   }
 
+  bool IsBitSet(uint8_t reg, uint8_t bit) { return (reg & (1 << bit)) != 0; }
+
   /*
    *
    * CheckAndRaiseStatInterrupt
@@ -36,7 +38,7 @@ namespace {
    */
   void CheckAndRaiseStatInterrupt(uint8_t stat, uint8_t bit,
                                   InterruptController& interrupt_handler) {
-    if ((stat & (1 << bit)) != 0) {
+    if (IsBitSet(stat, bit)) {
       interrupt_handler.requestInterrupt(interrupts::kLcdStatBit);
     }
   }
@@ -97,8 +99,23 @@ void PPU::advanceScanline() {
  *
  */
 void PPU::advance(uint8_t const t_cycles) {
+  // guard if PPU enable is 0
+  if (!IsBitSet(lcdc_, ppu::lcdc_bits::kLCDandPPUEnable)) {
+    ly_ = 0;
+    dot_counter_ = 0;
+    mode_ = PPUMode::kHBlank;
+
+    return;
+  }
+
   for (uint8_t i{}; i < t_cycles; ++i) {
     ++dot_counter_;
+
+    // for v1: because coincidence is only checked inside advanceScanline, the very first line 0
+    // of the very first frame (before any wrap) doesn't get a coincidence check — but every
+    // subsequent frame's ly=0 does (via the 153→0 wrap), so LYC = 0 works from frame two onward.
+    // Not worth handling
+
     if (dot_counter_ == ppu::kDotsPerScanline) {
       advanceScanline();
     }
