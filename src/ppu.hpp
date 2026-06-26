@@ -6,8 +6,7 @@
 
 #include "hardware_constants.hpp"
 #include "interrupt_controller.hpp"
-
-enum class PPUMode : uint8_t { kHBlank = 0, kVBlank = 1, kOAM = 2, kDraw = 3 };
+#include "ppu_mode.hpp"
 
 class PPU {
  private:

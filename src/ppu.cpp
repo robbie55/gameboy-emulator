@@ -5,72 +5,7 @@
 
 #include "hardware_constants.hpp"
 #include "ppu_constants.hpp"
-
-namespace {
-  /*
-   *
-   * DeriveTargetMode
-   *
-   * accepts the ly and dot_counter member, returns a mode based on conditions set in rendering
-   * see: https://gbdev.io/pandocs/Rendering.html
-   *
-   */
-  PPUMode DeriveTargetMode(uint8_t ly, uint16_t dot_counter) {
-    if (ly >= ppu::kModeOneScanlineEntry) {
-      return PPUMode::kVBlank;
-    }
-    if (dot_counter < ppu::kModeTwoDots) {
-      return PPUMode::kOAM;
-    }
-    if (dot_counter < (ppu::kModeTwoDots + ppu::kModeThreeDots)) {
-      return PPUMode::kDraw;
-    }
-
-    return PPUMode::kHBlank;
-  }
-
-  bool IsBitSet(uint8_t reg, uint8_t bit) { return (reg & (1 << bit)) != 0; }
-
-  /*
-   *
-   * CheckAndRaiseStatInterrupt
-   *
-   * Accepts stat and interrupt handler member, and the corresponding bit the ppu wishes to query
-   * for an inerrupt if that bit is set in the stat member, raise a stat interrupt
-   *
-   */
-  void CheckAndRaiseStatInterrupt(uint8_t stat, uint8_t bit, InterruptController& interrupt_handler) {
-    if (IsBitSet(stat, bit)) {
-      interrupt_handler.requestInterrupt(interrupts::kLcdStatBit);
-    }
-  }
-
-  /*
-   *
-   * TileNumberToAddress
-   *
-   * Handles taking in the tile_number computed from renderScanline, and whether we are using the
-   * signed or unsigned mode precendented by lcdc bit 4 (https://gbdev.io/pandocs/LCDC.html)
-   *
-   * Returns the calculated tile address
-   *
-   */
-  uint16_t TileNumberToAddress(uint8_t tile_number, bool is_tile_addressing_signed) {
-    uint16_t address_base{ppu::kBGWindowTileDataAreaUnsignedStart};
-    uint16_t u_offset{tile_number};
-
-    // tile address = base + offset * 16
-
-    if (is_tile_addressing_signed) {
-      address_base = ppu::kBGWindowTileDataAreaSignedStart;
-      int8_t s_offset{static_cast<int8_t>(u_offset)};
-
-      return static_cast<uint16_t>(address_base + (s_offset * 16));
-    }
-
-    return static_cast<uint16_t>(address_base + (u_offset * 16));
-  }
-}  // namespace
+#include "ppu_helpers.hpp"
 
 // we protect the bad addr invariant via asserts, so NOLINT serves for these accessors
 uint8_t PPU::readOAM(const uint16_t addr) const {
@@ -108,7 +43,7 @@ void PPU::advanceScanline() {
   }
 
   if (ly_ == ly_compare_) {
-    CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kLYCIntSelect, interrupt_handler_);
+    ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kLYCIntSelect, interrupt_handler_);
   }
 }
 
@@ -141,11 +76,11 @@ void PPU::renderScanline() {
   // 6. write those 160 shades into frame_buffer_ at row LY.
 
   uint16_t bg_tile_map_base{ppu::kBGTileMapZeroStart};
-  if (IsBitSet(lcdc_, ppu::lcdc_bits::kBGTileMapArea)) {
+  if (ppu::helpers::IsBitSet(lcdc_, ppu::lcdc_bits::kBGTileMapArea)) {
     bg_tile_map_base = ppu::kBGTileMapOneStart;
   }
 
-  bool is_tile_addressing_signed{!IsBitSet(lcdc_, ppu::lcdc_bits::kBackgroundWindowTileDataArea)};
+  bool is_tile_addressing_signed{!ppu::helpers::IsBitSet(lcdc_, ppu::lcdc_bits::kBackgroundWindowTileDataArea)};
 
   // background y location
   uint8_t bg_y{static_cast<uint8_t>((scroll_y_ + ly_) % 256)};
@@ -168,7 +103,7 @@ void PPU::renderScanline() {
     uint8_t tile_number{readVRAM(tile_map_entry_addr)};
 
     // read address
-    uint16_t tile_addr{TileNumberToAddress(tile_number, is_tile_addressing_signed)};
+    uint16_t tile_addr{ppu::helpers::TileNumberToAddress(tile_number, is_tile_addressing_signed)};
 
     // address, background x and y -> shade to draw
     uint8_t shade{getShadeFromTileAddr(tile_addr, bg_y, bg_x)};
@@ -192,7 +127,7 @@ void PPU::renderScanline() {
  */
 void PPU::advance(uint8_t const t_cycles) {
   // guard if PPU enable is 0
-  if (!IsBitSet(lcdc_, ppu::lcdc_bits::kLCDandPPUEnable)) {
+  if (!ppu::helpers::IsBitSet(lcdc_, ppu::lcdc_bits::kLCDandPPUEnable)) {
     ly_ = 0;
     dot_counter_ = 0;
     mode_ = PPUMode::kHBlank;
@@ -212,7 +147,7 @@ void PPU::advance(uint8_t const t_cycles) {
       advanceScanline();
     }
 
-    PPUMode target{DeriveTargetMode(ly_, dot_counter_)};
+    PPUMode target{ppu::helpers::DeriveTargetMode(ly_, dot_counter_)};
     if (target == mode_) {
       continue;
     }
@@ -220,18 +155,18 @@ void PPU::advance(uint8_t const t_cycles) {
     mode_ = target;
     switch (mode_) {
       case PPUMode::kOAM:
-        CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeTwoSelect, interrupt_handler_);
+        ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeTwoSelect, interrupt_handler_);
         break;
       case PPUMode::kDraw:
         renderScanline();
         break;
       case PPUMode::kHBlank:
-        CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeZeroSelect, interrupt_handler_);
+        ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeZeroSelect, interrupt_handler_);
         break;
       case PPUMode::kVBlank:
         frame_complete_ = true;
         interrupt_handler_.requestInterrupt(interrupts::kVblankBit);
-        CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeOneSelect, interrupt_handler_);
+        ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeOneSelect, interrupt_handler_);
         break;
     }
   }
