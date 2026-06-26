@@ -13,13 +13,11 @@ class PPU {
  private:
   void renderScanline();
   void advanceScanline();
+  [[nodiscard]] uint8_t getShadeFromTileAddr(uint16_t tile_addr, uint8_t bg_y, uint8_t bg_x) const;
 
  public:
   explicit PPU(InterruptController& interrupt_handler)
-      : mode_{PPUMode::kOAM},
-        lcdc_{0x91},
-        background_palette_{0xFC},
-        interrupt_handler_{interrupt_handler} {}
+      : mode_{PPUMode::kOAM}, lcdc_{0x91}, background_palette_{0xFC}, interrupt_handler_{interrupt_handler} {}
 
   // no moving or copying, ref& member variable
   PPU() = delete;
@@ -42,12 +40,8 @@ class PPU {
 
  private:
   // inclusive, +1 to prevent off by one errors
-  std::array<uint8_t,
-             static_cast<std::size_t>(game_boy_memory::kVRAMEnd - game_boy_memory::kVRAMStart + 1)>
-      vram_{};
-  std::array<uint8_t,
-             static_cast<std::size_t>(game_boy_memory::kOAMEnd - game_boy_memory::kOAMStart + 1)>
-      oam_{};
+  std::array<uint8_t, static_cast<std::size_t>(game_boy_memory::kVRAMEnd - game_boy_memory::kVRAMStart + 1)> vram_{};
+  std::array<uint8_t, static_cast<std::size_t>(game_boy_memory::kOAMEnd - game_boy_memory::kOAMStart + 1)> oam_{};
 
   std::array<uint8_t, static_cast<std::size_t>(lcd::kLCDHeight* lcd::kLCDWidth)> frame_buffer_{};
 
@@ -72,6 +66,5 @@ class PPU {
   uint8_t obj_sprite_palette_one_{};
 
   // non owning relationship, OK to use a ref here
-  InterruptController&
-      interrupt_handler_;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+  InterruptController& interrupt_handler_;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 };
