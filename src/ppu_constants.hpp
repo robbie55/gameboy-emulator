@@ -43,4 +43,6 @@ namespace ppu::stat_bits {
   inline constexpr uint8_t kLYCEqualsLYFlag{2};
   inline constexpr uint8_t kPPUModeEnd{1};
   inline constexpr uint8_t kPPUModeBegin{0};
+
+  inline constexpr uint8_t kStatWriteableMask{1 << kLYCIntSelect | 1 << kModeTwoSelect | 1 << kModeOneSelect | 1 << kModeZeroSelect};
 }  // namespace ppu::stat_bits

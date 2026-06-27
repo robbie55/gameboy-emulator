@@ -30,6 +30,9 @@ namespace game_boy_memory {
   inline constexpr uint16_t kIORegistersStart{0xFF00};
   inline constexpr uint16_t kIORegistersEnd{0xFF7F};
 
+  inline constexpr uint16_t kPPUIORegistersStart{0xFF40};
+  inline constexpr uint16_t kPPUIORegistersEnd{0xFF4B};
+
   inline constexpr uint16_t kHRAMStart{0xFF80};
   inline constexpr uint16_t kHRAMEnd{0xFFFE};
 }  // namespace game_boy_memory

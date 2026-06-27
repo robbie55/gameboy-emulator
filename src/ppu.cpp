@@ -34,6 +34,92 @@ void PPU::writeVRAM(const uint16_t addr, const uint8_t val) {
         game_boy_memory::kVRAMStart] = val;
 }
 
+uint8_t PPU::readRegister(const uint16_t addr) const {
+  assert(addr >= game_boy_memory::kPPUIORegistersStart && addr <= game_boy_memory::kPPUIORegistersEnd &&
+         "PPU::readRegister-> Given an out of bounds addr");
+
+  switch (addr) {
+    case io_registers::kLCDC:
+      return lcdc_;
+    case io_registers::kSTAT: {
+      uint8_t bit7{1 << 7};
+      uint8_t coincidence{static_cast<uint8_t>(static_cast<uint8_t>(ly_ == ly_compare_) << 2)};
+      return static_cast<uint8_t>(bit7 | stat_int_select_ | coincidence | static_cast<uint8_t>(mode_));
+    }
+    case io_registers::kSCX:
+      return scroll_x_;
+    case io_registers::kSCY:
+      return scroll_y_;
+    case io_registers::kLY:
+      return ly_;
+    case io_registers::kLYC:
+      return ly_compare_;
+    case io_registers::kDMA:
+      assert(false && "PPU::readRegister -> asked for DMA register, needs to be routed through readOAM");
+      break;
+    case io_registers::kBGP:
+      return background_palette_;
+    case io_registers::kOBPZero:
+      return obj_sprite_palette_zero_;
+    case io_registers::kOBPOne:
+      return obj_sprite_palette_one_;
+    case io_registers::kWX:
+      return window_x_;
+    case io_registers::kWY:
+      return window_y_;
+    default:
+      assert(false && "PPU::readRegister -> reached default case, unknown address");
+      break;
+  }
+  return 0x00;
+}
+
+void PPU::writeRegister(const uint16_t addr, const uint8_t val) {
+  assert(addr >= game_boy_memory::kPPUIORegistersStart && addr <= game_boy_memory::kPPUIORegistersEnd &&
+         "PPU::readRegister-> Given an out of bounds addr");
+
+  switch (addr) {
+    case io_registers::kLCDC:
+      lcdc_ = val;
+      return;
+    case io_registers::kSTAT:
+      // stat int select is a mask, only worry about bits 3-6, rest aren't used here
+      stat_int_select_ = ppu::stat_bits::kStatWriteableMask & (val);
+      return;
+    case io_registers::kSCX:
+      scroll_x_ = val;
+      return;
+    case io_registers::kSCY:
+      scroll_y_ = val;
+      return;
+    case io_registers::kLY:
+      return;
+    case io_registers::kLYC:
+      ly_compare_ = val;
+      return;
+    case io_registers::kDMA:
+      assert(false && "PPU::writeRegister -> called a write on DMA register, should be written with writeOAM");
+      return;
+    case io_registers::kBGP:
+      background_palette_ = val;
+      return;
+    case io_registers::kOBPZero:
+      obj_sprite_palette_zero_ = val;
+      return;
+    case io_registers::kOBPOne:
+      obj_sprite_palette_one_ = val;
+      return;
+    case io_registers::kWX:
+      window_x_ = val;
+      return;
+    case io_registers::kWY:
+      window_y_ = val;
+      return;
+    default:
+      assert(false && "PPU::readRegister -> Given an address not corresponding to a ppu owned register");
+  }
+}
+
 void PPU::advanceScanline() {
   dot_counter_ = 0;
   ly_++;

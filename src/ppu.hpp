@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 
 #include "hardware_constants.hpp"
 #include "interrupt_controller.hpp"
@@ -34,6 +35,11 @@ class PPU {
 
   [[nodiscard]] bool isFrameComplete() const { return frame_complete_; }
   void clearFrameComplete() { frame_complete_ = false; }
+
+  [[nodiscard]] uint8_t readRegister(uint16_t addr) const;
+  void writeRegister(uint16_t addr, uint8_t val);
+
+  [[nodiscard]] std::span<const uint8_t> framebuffer() const { return frame_buffer_; }
 
   void advance(uint8_t t_cycles);
 
