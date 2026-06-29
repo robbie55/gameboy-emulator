@@ -48,23 +48,26 @@ namespace ppu::helpers {
    *
    * Handles taking in the tile_number computed from renderScanline, and whether we are using the
    * signed or unsigned mode precendented by lcdc bit 4 (https://gbdev.io/pandocs/LCDC.html)
+   * Each tile is 8x8 pixels, 1 pixel is 2 bits, 128 bits, 16 bytes
    *
    * Returns the calculated tile address
    *
    */
   uint16_t TileNumberToAddress(uint8_t tile_number, bool is_tile_addressing_signed) {
     uint16_t address_base{ppu::kBGWindowTileDataAreaUnsignedStart};
-    uint16_t u_offset{tile_number};
+    uint16_t const u_offset{tile_number};
 
-    // tile address = base + offset * 16
+    auto const bytes_per_tile{16};
+
+    // tile address = base + offset * size of a tile
 
     if (is_tile_addressing_signed) {
       address_base = ppu::kBGWindowTileDataAreaSignedStart;
-      int8_t s_offset{static_cast<int8_t>(u_offset)};
+      int8_t const s_offset{static_cast<int8_t>(u_offset)};
 
-      return static_cast<uint16_t>(address_base + (s_offset * 16));
+      return static_cast<uint16_t>(address_base + (s_offset * bytes_per_tile));
     }
 
-    return static_cast<uint16_t>(address_base + (u_offset * 16));
+    return static_cast<uint16_t>(address_base + (u_offset * bytes_per_tile));
   }
 }  // namespace ppu::helpers
