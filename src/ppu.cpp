@@ -11,13 +11,13 @@
 uint8_t PPU::readOAM(const uint16_t addr) const {
   assert(addr >= game_boy_memory::kOAMStart && addr <= game_boy_memory::kOAMEnd && "PPU::readOAM -> Given an out of bounds addr");
 
-  return oam_[addr];  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index
+  return oam_[addr - game_boy_memory::kOAMStart];  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index
 }
 
 void PPU::writeOAM(const uint16_t addr, const uint8_t val) {
   assert(addr >= game_boy_memory::kOAMStart && addr <= game_boy_memory::kOAMEnd && "PPU::writeOAM -> Given an out of bounds addr");
 
-  oam_[addr] = val;  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index
+  oam_[addr - game_boy_memory::kOAMStart] = val;  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index
 }
 
 uint8_t PPU::readVRAM(const uint16_t addr) const {
