@@ -20,8 +20,8 @@ namespace ppu {
   inline constexpr uint16_t kBGTileMapZeroStart{0x9800};
   inline constexpr uint16_t kBGTileMapOneStart{0x9C00};
 
-  inline constexpr uint16_t kBGWindowTileDataAreaUnsignedStart{0x9000};
-  inline constexpr uint16_t kBGWindowTileDataAreaSignedStart{0x8000};
+  inline constexpr uint16_t kBGWindowTileDataAreaUnsignedStart{0x8000};
+  inline constexpr uint16_t kBGWindowTileDataAreaSignedStart{0x9000};
 }  // namespace ppu
 
 namespace ppu::lcdc_bits {
