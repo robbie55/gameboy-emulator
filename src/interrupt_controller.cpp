@@ -15,7 +15,8 @@ std::optional<int> InterruptController::queryPendingInterrupt() const {
     return {};
   }
 
-  // countr_zero will count trailing 0's, 1100 -> yields 2
+  // countr_zero will count trailing 0's, 1100 -> yields 2, returns index of the lowest set bit,
+  // i.e. the highest priority interrupt
   return std::countr_zero(std::to_integer<uint8_t>(pending_mask));
 }
 
