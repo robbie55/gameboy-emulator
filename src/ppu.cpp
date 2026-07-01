@@ -84,7 +84,7 @@ void PPU::writeRegister(const uint16_t addr, const uint8_t val) {
       return;
     case io_registers::kSTAT:
       // stat int select is a mask, only worry about bits 3-6, rest aren't used here
-      stat_int_select_ = ppu::stat_bits::kStatWriteableMask & (val);
+      stat_int_select_ = ppu::stat_bits::kStatWriteableMask & val;
       return;
     case io_registers::kSCX:
       scroll_x_ = val;
