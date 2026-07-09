@@ -179,7 +179,6 @@ void PPU::renderScanline() {
     // background x location
     uint8_t bg_x{static_cast<uint8_t>((scroll_x_ + x) % 256)};
 
-    // tile column
     auto tile_col{bg_x / 8};
 
     // row major, 32 bytes per row, 32 rows, extract current map entry
