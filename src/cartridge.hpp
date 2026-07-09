@@ -32,8 +32,7 @@ class Cartridge {
   ~Cartridge() = default;
 
   [[nodiscard]] std::byte read(uint16_t addr) const {
-    return std::visit([addr](const RomOnlyCartridge& c) -> std::byte { return c.read(addr); },
-                      cartridge_);
+    return std::visit([addr](const RomOnlyCartridge& c) -> std::byte { return c.read(addr); }, cartridge_);
   };
   void write(uint16_t addr, std::byte const val) {
     std::visit([addr, &val](RomOnlyCartridge& c) -> void { c.write(addr, val); }, cartridge_);

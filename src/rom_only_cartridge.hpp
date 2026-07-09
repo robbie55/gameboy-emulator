@@ -14,8 +14,7 @@ class RomOnlyCartridge {
  public:
   RomOnlyCartridge(std::vector<std::byte> rom) : rom_{std::move(rom)} {
     // assert here, factory handles validation
-    assert(std::size(rom_) == cartridge::kROMOnlyROMSize &&
-           "RomOnlyCartridge::RomOnlyCartridge(std::vector rom) -> ROM isn't 32KiB");
+    assert(std::size(rom_) == cartridge::kROMOnlyROMSize && "RomOnlyCartridge::RomOnlyCartridge(std::vector rom) -> ROM isn't 32KiB");
   }
 
   RomOnlyCartridge(RomOnlyCartridge const& other) = delete;
