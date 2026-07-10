@@ -82,3 +82,16 @@ namespace lcd {
   inline constexpr uint8_t kLCDWidth{160};
   inline constexpr uint8_t kLCDHeight{144};
 }  // namespace lcd
+
+namespace timer {
+  // Periods measured in T cycles
+  inline constexpr uint16_t kTACTimer00ClockPeriod{1024};
+  inline constexpr uint16_t kTACTimer01ClockPeriod{16};
+  inline constexpr uint16_t kTACTimer10ClockPeriod{64};
+  inline constexpr uint16_t kTACTimer11ClockPeriod{256};
+
+  inline constexpr uint16_t kDIVIncrementRate{256};
+
+  inline constexpr uint8_t kTACEnableBit{2};
+  inline constexpr uint8_t kTACClockSelectBits{0x03};
+}  // namespace timer
