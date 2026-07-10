@@ -90,7 +90,7 @@ namespace timer {
   inline constexpr uint16_t kTACTimer10ClockPeriod{64};
   inline constexpr uint16_t kTACTimer11ClockPeriod{256};
 
-  inline constexpr uint16_t kDIVIncrementRate{256};
+  inline constexpr uint16_t kDIVPeriod{256};
 
   inline constexpr uint8_t kTACEnableBit{2};
   inline constexpr uint8_t kTACClockSelectBits{0x03};
