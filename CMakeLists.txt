@@ -11,6 +11,7 @@ add_library(gb_core
     src/cpu.cpp src/mmu.cpp src/ppu.cpp
     src/timer.cpp src/cartridge.cpp src/joypad.cpp src/gameboy.cpp
     src/rom_only_cartridge.cpp src/cartridge_factory.cpp src/interrupt_controller.cpp
+    src/ppu_helpers.cpp
 )
 
 target_include_directories(gb_core PUBLIC src)
