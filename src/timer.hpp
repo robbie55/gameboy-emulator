@@ -4,6 +4,10 @@
 
 #include "interrupt_controller.hpp"
 class Timer {
+ private:
+  void handleTIMAOverflow();
+  void detectFallingEdge();
+
  public:
   explicit Timer(InterruptController& interrupt_handler) : interrupt_handler_{interrupt_handler} {}
 
@@ -23,9 +27,11 @@ class Timer {
   uint16_t div_{0xABCC};
   uint8_t tima_{};
   uint8_t tma_{};
-  // docs have non-read bits set to 1, as hardware reads these 'garbage' values as 1
-  // see: https://gbdev.io/pandocs/Power_Up_Sequence.html?highlight=TAC#hardware-registers
-  uint8_t tac_{0xF8};
+  uint8_t tac_{};
+
+  // prev_signal_ should start consistent with your post-boot div_/tac_ so the first tick doesn't fabricate an edge.
+  // Post-boot the timer's disabled (enable=0 → signal=0)
+  bool prev_signal_{};
 
   // non owning relationship, OK to use a ref here
   InterruptController& interrupt_handler_;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
