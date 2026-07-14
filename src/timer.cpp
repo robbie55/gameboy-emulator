@@ -25,13 +25,13 @@ namespace {
     auto bottom_two_bits{static_cast<uint8_t>(tac & timer::kTACClockSelectBits)};
 
     switch (bottom_two_bits) {
-      case 0x00:
+      case 0:
         return 9;
-      case 0x01:
+      case 1:
         return 3;
-      case 0x02:
+      case 2:
         return 5;
-      case 0x03:
+      case 3:
         return 7;
       default:
         assert(false && "GetTappedBit -> Derived a non 0-3 value from two bits, shouldn't happen");
