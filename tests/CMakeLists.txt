@@ -14,6 +14,7 @@ include(doctest)
 
 add_executable(tests 
   src/test_cartridge.cpp src/test_interrupt_controller.cpp src/test_ppu.cpp
+  src/test_timer.cpp
 )
 
 target_link_libraries(tests PRIVATE gb_core)
