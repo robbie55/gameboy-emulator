@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <limits>
+#include <vector>
 
 #include "hardware_constants.hpp"
 #include "interrupt_controller.hpp"
