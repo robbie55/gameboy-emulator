@@ -9,7 +9,7 @@ class Timer {
   void detectFallingEdge();
 
  public:
-  explicit Timer(InterruptController& interrupt_handler) : interrupt_handler_{interrupt_handler} {}
+  explicit Timer(InterruptController& interrupt_controller) : interrupt_controller_{interrupt_controller} {}
 
   Timer(Timer const& rhs) = delete;
   Timer& operator=(Timer const& rhs) = delete;
@@ -34,5 +34,5 @@ class Timer {
   bool prev_signal_{};
 
   // non owning relationship, OK to use a ref here
-  InterruptController& interrupt_handler_;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+  InterruptController& interrupt_controller_;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 };

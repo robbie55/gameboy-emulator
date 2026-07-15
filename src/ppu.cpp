@@ -129,7 +129,7 @@ void PPU::advanceScanline() {
   }
 
   if (ly_ == ly_compare_) {
-    ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kLYCIntSelect, interrupt_handler_);
+    ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kLYCIntSelect, interrupt_controller_);
   }
 }
 
@@ -240,18 +240,18 @@ void PPU::advance(uint8_t const t_cycles) {
     mode_ = target;
     switch (mode_) {
       case PPUMode::kOAM:
-        ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeTwoSelect, interrupt_handler_);
+        ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeTwoSelect, interrupt_controller_);
         break;
       case PPUMode::kDraw:
         renderScanline();
         break;
       case PPUMode::kHBlank:
-        ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeZeroSelect, interrupt_handler_);
+        ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeZeroSelect, interrupt_controller_);
         break;
       case PPUMode::kVBlank:
         frame_complete_ = true;
-        interrupt_handler_.requestInterrupt(interrupts::kVblankBit);
-        ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeOneSelect, interrupt_handler_);
+        interrupt_controller_.requestInterrupt(interrupts::kVblankBit);
+        ppu::helpers::CheckAndRaiseStatInterrupt(stat_int_select_, ppu::stat_bits::kModeOneSelect, interrupt_controller_);
         break;
     }
   }
