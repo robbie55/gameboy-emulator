@@ -7,7 +7,6 @@
  * Joypad::read()
  *
  * handles taking our logically mapped bit values and returning in an active low format
- * Three cases: Select buttons, d pad buttons, or neither
  *
  * First, | against both select register members, setting or not setting either of the select bits
  * Then, for both buttons and d pad, create a mask of either 0 or FF, depending on select bit,
@@ -36,4 +35,12 @@ uint8_t Joypad::read() const {
   joypad_register |= ((d_pad_mask & d_pad_nibble) | (buttons_mask & buttons_nibble));
 
   return ~(joypad_register);
+}
+
+void Joypad::writeSelect(uint8_t const val) {
+  // joypad reg is active low, we store active high for logical sense
+  auto const active_high_val{~val};
+
+  select_buttons_ = (active_high_val & joypad::kSelectButtonMask);
+  select_d_pad_ = (active_high_val & joypad::kSelectDPadMask);
 }
