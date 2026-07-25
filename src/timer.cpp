@@ -46,7 +46,7 @@ void Timer::handleTIMAOverflow() {
   // set tima to tma, and request an interrupt
   if (tima_ == 0x00) {
     tima_ = tma_;
-    interrupt_handler_.requestInterrupt(interrupts::kTimerBit);
+    interrupt_controller_.requestInterrupt(interrupts::kTimerBit);
   }
 }
 
